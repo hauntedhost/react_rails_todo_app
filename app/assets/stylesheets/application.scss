@@ -13,3 +13,13 @@
  *= require_tree .
  *= require_self
  */
+
+.todos {
+  .todo {
+    cursor: pointer;
+
+    &.done {
+      text-decoration: line-through;
+    }
+  }
+}
