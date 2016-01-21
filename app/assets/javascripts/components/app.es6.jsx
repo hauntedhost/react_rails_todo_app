@@ -1,29 +1,22 @@
 class App extends React.Component {
+
   constructor(props) {
     super(props);
-    this.DEBUG = true;
     this.state = {
+      inputValue: '',
       todos: props.todos,
-      inputValue: ''
+      words: props.words,
     }
   }
 
-  handleOnChange(e) {
-    const newValue = e.target.value;
-    this.DEBUG && console.log('typed!', newValue);
+  updateInputValue(newValue) {
     this.setState({
       inputValue: newValue
     });
   }
 
-  handleOnKeyDown(e) {
-    if (e.key === 'Enter') {
-      const todoNote = this.state.inputValue;
-      this.addTodo(todoNote);
-    }
-  }
-
-  addTodo(todoNote) {
+  addTodo() {
+    const todoNote = this.state.inputValue;
     if (todoNote === '') { return; }
     const newTodo = { note: todoNote, complete: false };
     const todos = this.state.todos;
@@ -35,7 +28,7 @@ class App extends React.Component {
   }
 
   toggleTodo(index) {
-    this.DEBUG && console.log('toggle!', index);
+    __debug('toggle!', index);
     const todos = this.state.todos;
     const newCompleteValue = todos[index].complete ? false : true;
     todos[index].complete = newCompleteValue;
@@ -44,29 +37,38 @@ class App extends React.Component {
     })
   }
 
+  updateButtonName(buttonName) {
+    __debug('actionForButton', buttonName);
+    const url = `/word/${buttonName}`;
+    $.get(url, (response) => {
+      __debug('response', response);
+
+      const words = this.state.words;
+      const newWords = words.reduce((result, word) => {
+        word.word = (word.name === response.name) ? response.word : word.word;
+        result.push(word);
+        return result;
+      }, []);
+
+      this.setState({
+        words: newWords
+      })
+    });
+  }
+
   render() {
-    const todos = this.state.todos;
-
     return (
-      <div className='todos'>
-        <h2>Todos:</h2>
+      <div>
+        <Todos
+          todos={this.state.todos}
+          inputValue={this.state.inputValue}
+          updateInputValue={this.updateInputValue.bind(this)}
+          addTodo={this.addTodo.bind(this)}
+          toggleTodo={this.toggleTodo.bind(this)} />
 
-        <input
-          value={this.state.inputValue}
-          onChange={this.handleOnChange.bind(this)}
-          onKeyDown={this.handleOnKeyDown.bind(this)}
-          placeholder='New Todo' />
-
-        <ul>
-          {todos.map((todo, index) => {
-            return (
-              <Todo
-                key={index}
-                todo={todo}
-                toggle={this.toggleTodo.bind(this, index)} />
-            );
-          })}
-        </ul>
+        <Words
+          words={this.state.words}
+          updateButtonName={this.updateButtonName.bind(this)} />
       </div>
     );
   }
